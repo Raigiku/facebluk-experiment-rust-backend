@@ -1,14 +1,19 @@
 use async_trait::async_trait;
-use domain::modules::event_store::{aggregate::Aggregate, user::User};
+use domain::modules::{
+    event_store::{aggregate::Aggregate, user::User},
+    shared::errors::UnexpectedError,
+};
 use integrator::event_store::user_accessor::UserQueries;
 use std::collections::HashMap;
+
+use crate::errors::map_sqlx_error;
 
 use super::UserAccessor;
 
 #[async_trait]
 impl UserQueries for UserAccessor {
-    async fn alias_exists(&self, alias: &str) -> bool {
-        sqlx::query(
+    async fn alias_exists(&self, alias: &str) -> Result<bool, UnexpectedError> {
+        Ok(sqlx::query(
             "
             SELECT 1
             FROM user u
@@ -18,22 +23,22 @@ impl UserQueries for UserAccessor {
         .bind(alias)
         .fetch_optional(self.pool.as_ref())
         .await
-        .unwrap()
-        .is_some()
+        .map_err(map_sqlx_error)?
+        .is_some())
     }
 
-    async fn find_by_id(&self, id: &str) -> Option<User> {
+    async fn find_by_id(&self, id: &str) -> Result<Option<User>, UnexpectedError> {
         let sql_str = format!("{} {}", QUERY_SQL, "WHERE u.id = $1");
         let rows = sqlx::query_as::<_, QueryRow>(&sql_str)
             .bind(id)
             .fetch_all(self.pool.as_ref())
             .await
-            .unwrap();
-        let mut rows = map_query_rows(rows);
+            .map_err(map_sqlx_error)?;
+        let mut rows = map_query_rows(rows)?;
         if rows.len() == 0 {
-            None
+            Ok(None)
         } else {
-            Some(rows.remove(0))
+            Ok(Some(rows.remove(0)))
         }
     }
 }
@@ -59,14 +64,14 @@ struct QueryRow {
     u_profile_picture_url: Option<String>,
 }
 
-fn map_query_rows(rows: Vec<QueryRow>) -> Vec<User> {
+fn map_query_rows(rows: Vec<QueryRow>) -> Result<Vec<User>, UnexpectedError> {
     let mut map = HashMap::<String, User>::new();
     for row in rows.into_iter() {
         if !map.contains_key(&row.u_id) {
             map.insert(
                 row.u_id.clone(),
                 User::from_existing(
-                    Aggregate::from_existing(row.u_id, row.u_version, row.u_created_at.try_into().unwrap()),
+                    Aggregate::from_existing(row.u_id, row.u_version, row.u_created_at.try_into()?),
                     row.u_name,
                     row.u_alias,
                     row.u_profile_picture_url,
@@ -74,5 +79,5 @@ fn map_query_rows(rows: Vec<QueryRow>) -> Vec<User> {
             );
         }
     }
-    map.into_values().collect()
+    Ok(map.into_values().collect())
 }

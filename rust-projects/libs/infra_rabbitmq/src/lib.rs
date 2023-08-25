@@ -1,10 +1,12 @@
 pub mod config;
+mod errors;
 
 use std::sync::Arc;
 
 use async_trait::async_trait;
 pub use config::Config;
 use domain::modules::shared::errors::UnexpectedError;
+use errors::map_lapin_error;
 use integrator::MsgBrokerChannel;
 use lapin::{
     options::{BasicPublishOptions, ExchangeDeclareOptions},
@@ -34,7 +36,7 @@ impl integrator::MsgBroker for MsgBrokerImpl {
             .as_ref()
             .create_channel()
             .await
-            .map_err(|err| UnexpectedError::new(err.to_string()))?;
+            .map_err(map_lapin_error)?;
         Ok(Box::new(MsgBrokerChannelImpl {
             channel: rabbit_channel,
         }))
@@ -59,7 +61,7 @@ impl integrator::MsgBrokerChannel for MsgBrokerChannelImpl {
                 FieldTable::default(),
             )
             .await
-            .map_err(|err| UnexpectedError::new(err.to_string()))?;
+            .map_err(map_lapin_error)?;
 
         self.channel
             .basic_publish(
@@ -70,7 +72,7 @@ impl integrator::MsgBrokerChannel for MsgBrokerChannelImpl {
                 BasicProperties::default().with_delivery_mode(2),
             )
             .await
-            .map_err(|err| UnexpectedError::new(err.to_string()))?;
+            .map_err(map_lapin_error)?;
 
         Ok(())
     }

@@ -1,4 +1,7 @@
-use domain::modules::{shared::errors::UnexpectedError, user_auth::user::User};
+use domain::modules::{
+    shared::{datetime::DateTime, errors::UnexpectedError},
+    user_auth::user::User,
+};
 use reqwest::StatusCode;
 use serde::Deserialize;
 
@@ -27,7 +30,11 @@ impl UserQueries for UserAccessor {
                 .json::<UserDTO>()
                 .await
                 .map_err(map_reqwest_error)?;
-            Ok(Some(User::from_existing(res_dto.id, res_dto.registered_at.map(|x| x.try_into().unwrap()))))
+
+            let registered_at: Option<DateTime> =
+                res_dto.registered_at.map(|x| x.try_into()).transpose()?;
+                
+            Ok(Some(User::from_existing(res_dto.id, registered_at)))
         } else if response_status_code == StatusCode::NOT_FOUND {
             Ok(None)
         } else {

@@ -28,7 +28,7 @@ impl FromRequest for UserExtractor {
                     "authorization header not found".to_string(),
                 ))
                 .and_then(|header| {
-                    header.to_str().map_err(|_err| {
+                    header.to_str().map_err(|_| {
                         UnexpectedError::new("header cant parse to str".to_string())
                     })
                 })
@@ -46,7 +46,7 @@ impl FromRequest for UserExtractor {
                     "authorization header not found".to_string(),
                 ))
                 .and_then(|header| {
-                    header.to_str().map_err(|_err| {
+                    header.to_str().map_err(|_| {
                         UnexpectedError::new("header cant parse to str".to_string())
                     })
                 })

@@ -1,12 +1,20 @@
 use async_trait::async_trait;
+use domain::modules::shared::errors::UnexpectedError;
 use integrator::file_storage::user_accessor::UserMutations;
 use serde::Deserialize;
+
+use crate::errors::map_reqwest_error;
 
 use super::UserAccessor;
 
 #[async_trait]
 impl UserMutations for UserAccessor {
-    async fn upload_image(&self, user_id: &str, file_name: &str, bytes: Vec<u8>) -> String {
+    async fn upload_image(
+        &self,
+        user_id: &str,
+        file_name: &str,
+        bytes: Vec<u8>,
+    ) -> Result<String, UnexpectedError> {
         let url = format!("{}/file-storage", self.config.api_url);
         let file_path = format!("users/{}/{}", user_id, file_name);
         let http_client = reqwest::Client::new();
@@ -21,7 +29,7 @@ impl UserMutations for UserAccessor {
             .multipart(upload_img_form)
             .send()
             .await
-            .unwrap();
+            .map_err(map_reqwest_error)?;
 
         let query_params = &[
             ("function", "find_public_file_url"),
@@ -33,9 +41,9 @@ impl UserMutations for UserAccessor {
             .query(query_params)
             .send()
             .await
-            .unwrap();
-        let res_dto = http_res.json::<UrlDTO>().await.unwrap();
-        res_dto.url
+            .map_err(map_reqwest_error)?;
+        let res_dto = http_res.json::<UrlDTO>().await.map_err(map_reqwest_error)?;
+        Ok(res_dto.url)
     }
 }
 

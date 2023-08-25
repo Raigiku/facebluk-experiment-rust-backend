@@ -10,8 +10,9 @@ use domain::modules::{
     event_store, msg_broker,
     shared::{
         self,
-        errors::{FaceblukError, UnexpectedError, UserExposedError},
-        image::Image, json_serializer,
+        errors::{FaceblukError, UserExposedError},
+        image::Image,
+        json_serializer,
     },
 };
 use integrator::{EventStore, UserAuth};
@@ -47,7 +48,7 @@ pub async fn handle(
                     &profile_picture.file_name(),
                     profile_picture.bytes,
                 )
-                .await,
+                .await?,
         )
     } else {
         None
@@ -58,9 +59,10 @@ pub async fn handle(
         name: form.name.to_string(),
         alias: form.alias.to_string(),
         profile_picture_url,
-    })
-    .map_err(|err| UnexpectedError::new(err.to_string()))?;
-    msg_broker_chann.send(msg_broker::user::REGISTER_USER_MSG_KEY, &serialized_msg).await?;
+    })?;
+    msg_broker_chann
+        .send(msg_broker::user::REGISTER_USER_MSG_KEY, &serialized_msg)
+        .await?;
 
     Ok(HttpResponse::Ok())
 }
@@ -88,7 +90,7 @@ async fn validate_request(
         shared::image::validate(profile_picture)?;
     }
 
-    let alias_exists = event_store.user_queries().alias_exists(alias).await;
+    let alias_exists = event_store.user_queries().alias_exists(alias).await?;
     if alias_exists {
         return Err(UserExposedError::new("user alias already exists".to_string()).into());
     }
