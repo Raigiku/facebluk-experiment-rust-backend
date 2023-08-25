@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use domain::modules::{user_auth::user::User, shared::errors::UnexpectedError};
+use domain::modules::{shared::{errors::UnexpectedError, datetime::DateTime}, user_auth::user::User};
 
 #[async_trait]
 pub trait UserQueries: Sync + Send {
@@ -7,4 +7,10 @@ pub trait UserQueries: Sync + Send {
 }
 
 #[async_trait]
-pub trait UserMutations: Sync + Send {}
+pub trait UserMutations: Sync + Send {
+    async fn mark_as_registered(
+        &self,
+        id: &str,
+        registered_at: &DateTime,
+    ) -> Result<(), UnexpectedError>;
+}

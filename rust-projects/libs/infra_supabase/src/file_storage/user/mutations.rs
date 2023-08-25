@@ -1,7 +1,6 @@
 use async_trait::async_trait;
 use domain::modules::shared::errors::UnexpectedError;
 use integrator::file_storage::user_accessor::UserMutations;
-use serde::Deserialize;
 
 use crate::errors::map_reqwest_error;
 
@@ -15,39 +14,25 @@ impl UserMutations for UserAccessor {
         file_name: &str,
         bytes: Vec<u8>,
     ) -> Result<String, UnexpectedError> {
-        let url = format!("{}/file-storage", self.config.api_url);
         let file_path = format!("users/{}/{}", user_id, file_name);
-        let http_client = reqwest::Client::new();
-
-        let upload_img_form = reqwest::multipart::Form::new()
-            .text("function", "upload_file")
-            .text("bucket_name", "images")
-            .text("file_path", file_path.clone())
-            .part("file_bytes", reqwest::multipart::Part::bytes(bytes));
-        http_client
+        let url = format!(
+            "{}/storage/v1/object/images/{}",
+            self.config.api_url, file_path
+        );
+        let upload_img_form =
+            reqwest::multipart::Form::new().part("", reqwest::multipart::Part::bytes(bytes));
+        reqwest::Client::new()
             .post(&url)
+            .bearer_auth(&self.config.service_role)
             .multipart(upload_img_form)
             .send()
             .await
             .map_err(map_reqwest_error)?;
 
-        let query_params = &[
-            ("function", "find_public_file_url"),
-            ("bucket_name", "images"),
-            ("file_path", &file_path),
-        ];
-        let http_res = http_client
-            .get(&url)
-            .query(query_params)
-            .send()
-            .await
-            .map_err(map_reqwest_error)?;
-        let res_dto = http_res.json::<UrlDTO>().await.map_err(map_reqwest_error)?;
-        Ok(res_dto.url)
+        let img_url = format!(
+            "{}/storage/v1/object/images/{}",
+            self.config.api_url, file_path
+        );
+        Ok(img_url)
     }
-}
-
-#[derive(Deserialize)]
-struct UrlDTO {
-    url: String,
 }

@@ -15,11 +15,11 @@ use super::UserAccessor;
 #[async_trait]
 impl UserQueries for UserAccessor {
     async fn find_by_id(&self, id: &str) -> Result<Option<User>, UnexpectedError> {
-        let url = format!("{}/user-auth", self.config.api_url);
-        let query_params = &[("function", "find_user_by_id"), ("user_id", id)];
+        let url = format!("{}/auth/v1/admin/users/{}", self.config.api_url, id);
         let http_res = reqwest::Client::new()
             .get(url)
-            .query(query_params)
+            .header("apiKey", &self.config.service_role)
+            .bearer_auth(&self.config.service_role)
             .send()
             .await
             .map_err(map_reqwest_error)?;
@@ -31,9 +31,12 @@ impl UserQueries for UserAccessor {
                 .await
                 .map_err(map_reqwest_error)?;
 
-            let registered_at: Option<DateTime> =
-                res_dto.registered_at.map(|x| x.try_into()).transpose()?;
-                
+            let registered_at: Option<DateTime> = res_dto
+                .user_metadata
+                .registered_at
+                .map(|x| x.try_into())
+                .transpose()?;
+
             Ok(Some(User::from_existing(res_dto.id, registered_at)))
         } else if response_status_code == StatusCode::NOT_FOUND {
             Ok(None)
@@ -47,5 +50,11 @@ impl UserQueries for UserAccessor {
 #[derive(Deserialize)]
 struct UserDTO {
     id: String,
+    user_metadata: UserDTOMetadata,
+}
+
+#[derive(Deserialize)]
+struct UserDTOMetadata {
+    #[serde(alias = "registeredAt")]
     registered_at: Option<String>,
 }

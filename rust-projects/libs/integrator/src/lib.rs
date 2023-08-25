@@ -9,3 +9,5 @@ pub use event_store::EventStore;
 
 pub mod msg_broker;
 pub use msg_broker::{MsgBroker, MsgBrokerChannel};
+
+pub mod command_handlers;

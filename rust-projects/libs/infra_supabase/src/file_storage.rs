@@ -17,7 +17,6 @@ impl FileStorageImpl {
             user_mutations,
         }
     }
-
 }
 
 impl integrator::FileStorage for FileStorageImpl {

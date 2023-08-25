@@ -1,5 +1,8 @@
 use async_trait::async_trait;
-use domain::modules::{event_store::user::User, shared::errors::UnexpectedError};
+use domain::modules::{
+    event_store::user::{events::Registered, User},
+    shared::errors::UnexpectedError,
+};
 
 #[async_trait]
 pub trait UserQueries: Sync + Send {
@@ -8,4 +11,6 @@ pub trait UserQueries: Sync + Send {
 }
 
 #[async_trait]
-pub trait UserMutations: Sync + Send {}
+pub trait UserMutations: Sync + Send {
+    async fn register(&self, event: &Registered) -> Result<(), UnexpectedError>;
+}

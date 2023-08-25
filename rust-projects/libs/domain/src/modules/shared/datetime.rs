@@ -4,6 +4,16 @@ use super::errors::UnexpectedError;
 
 pub struct DateTime(chrono::DateTime<Utc>);
 
+impl DateTime {
+    pub fn now() -> Self {
+        DateTime(chrono::Utc::now())
+    }
+
+    pub fn to_rfc3339(&self) -> String {
+        self.0.to_rfc3339()
+    }
+}
+
 impl TryFrom<String> for DateTime {
     type Error = UnexpectedError;
 

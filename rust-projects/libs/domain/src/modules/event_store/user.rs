@@ -25,15 +25,16 @@ impl User {
     }
 
     pub fn register(
-        name: String,
-        alias: String,
-        profile_picture_url: Option<String>,
+        id: &str,
+        name: &str,
+        alias: &str,
+        profile_picture_url: &Option<String>,
     ) -> events::Registered {
         events::Registered {
             payload: events::RegisteredPayload {
-                name,
-                alias,
-                profile_picture_url,
+                name: name.to_string(),
+                alias: alias.to_string(),
+                profile_picture_url:profile_picture_url.clone(),
             },
         }
     }
