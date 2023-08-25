@@ -1,0 +1,23 @@
+[package]
+name = "user_command_api"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+actix-web = "4.3.1"
+actix-multipart = "0.6.0"
+log = "0.4.20"
+env_logger = "0.10.0"
+dotenv = "0.15.0"
+serde = { workspace = true }
+derive_more = { workspace = true }
+async-trait = { workspace = true }
+mockall = { workspace = true }
+mockall_double = { workspace = true }
+domain = { path = "../../libs/domain" }
+infra_event_store_pg = { path = "../../libs/infra_event_store_pg" }
+infra_supabase = { path = "../../libs/infra_supabase" }
+infra_rabbitmq = { path = "../../libs/infra_rabbitmq" }
+integrator = { path = "../../libs/integrator" }

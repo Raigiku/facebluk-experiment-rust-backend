@@ -1,0 +1,16 @@
+[workspace]
+members = [
+    "apps/user_command_api",
+    "libs/domain",
+    "libs/infra_event_store_pg",
+    "libs/integrator",
+    "libs/infra_supabase",
+    "libs/infra_rabbitmq",
+]
+
+[workspace.dependencies]
+derive_more = "0.99.17"
+serde = { version = "1.0.183", features = ["derive"] }
+async-trait = "0.1.73"
+mockall = "0.11.4"
+mockall_double = "0.3.0"
