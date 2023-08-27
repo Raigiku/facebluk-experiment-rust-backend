@@ -6,7 +6,7 @@ use domain::modules::{
 use integrator::event_store::user_accessor::UserQueries;
 use std::collections::HashMap;
 
-use crate::errors::map_sqlx_error;
+use domain::map_unexpected_error;
 
 use super::UserAccessor;
 
@@ -23,7 +23,7 @@ impl UserQueries for UserAccessor {
         .bind(alias)
         .fetch_optional(self.pool.as_ref())
         .await
-        .map_err(map_sqlx_error)?
+        .map_err(|err| map_unexpected_error!(err))?
         .is_some())
     }
 
@@ -33,7 +33,7 @@ impl UserQueries for UserAccessor {
             .bind(id)
             .fetch_all(self.pool.as_ref())
             .await
-            .map_err(map_sqlx_error)?;
+            .map_err(|err| map_unexpected_error!(err))?;
         let mut rows = map_query_rows(rows)?;
         if rows.len() == 0 {
             Ok(None)

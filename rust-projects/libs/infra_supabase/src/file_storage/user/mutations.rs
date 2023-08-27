@@ -1,8 +1,6 @@
 use async_trait::async_trait;
-use domain::modules::shared::errors::UnexpectedError;
+use domain::{modules::shared::errors::UnexpectedError, map_unexpected_error};
 use integrator::file_storage::user_accessor::UserMutations;
-
-use crate::errors::map_reqwest_error;
 
 use super::UserAccessor;
 
@@ -27,7 +25,7 @@ impl UserMutations for UserAccessor {
             .multipart(upload_img_form)
             .send()
             .await
-            .map_err(map_reqwest_error)?;
+            .map_err(|err| map_unexpected_error!(err))?;
 
         let img_url = format!(
             "{}/storage/v1/object/images/{}",

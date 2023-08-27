@@ -1,13 +1,13 @@
-use std::{future::Future, pin::Pin};
+use std::{future::Future, pin::Pin, sync::Arc};
 
 use actix_web::{web, FromRequest, HttpRequest};
 use domain::{
-    config::Environment,
+    config::{Environment, SharedConfig},
     modules::shared::{errors::UnexpectedError, jsonwebtoken, uuid},
 };
 use serde::Deserialize;
 
-use super::{app_state::AppState, error_handling::FaceblukHttpError};
+use super::{config::Config, error_handling::FaceblukHttpError};
 
 pub struct UserExtractor {
     pub user_id: String,
@@ -19,8 +19,8 @@ impl FromRequest for UserExtractor {
     type Future = Pin<Box<dyn Future<Output = Result<UserExtractor, FaceblukHttpError>>>>;
 
     fn from_request(req: &HttpRequest, _payload: &mut actix_web::dev::Payload) -> Self::Future {
-        let app_state = req.app_data::<web::Data<AppState>>().unwrap();
-        if app_state.shared_config.environment == Environment::Local {
+        let shared_config = req.app_data::<web::Data<Arc<SharedConfig>>>().unwrap();
+        if shared_config.environment == Environment::Local {
             let user = req
                 .headers()
                 .get("authorization")
@@ -28,9 +28,9 @@ impl FromRequest for UserExtractor {
                     "authorization header not found".to_string(),
                 ))
                 .and_then(|header| {
-                    header.to_str().map_err(|_| {
-                        UnexpectedError::new("header cant parse to str".to_string())
-                    })
+                    header
+                        .to_str()
+                        .map_err(|_| UnexpectedError::new("header cant parse to str".to_string()))
                 })
                 .and_then(|header_str| uuid::parse_str(header_str))
                 .map(|user_id| UserExtractor {
@@ -39,6 +39,7 @@ impl FromRequest for UserExtractor {
 
             Box::pin(async { Ok(user?) })
         } else {
+            let api_config = req.app_data::<web::Data<Arc<Config>>>().unwrap();
             let user = req
                 .headers()
                 .get("authorization")
@@ -46,9 +47,9 @@ impl FromRequest for UserExtractor {
                     "authorization header not found".to_string(),
                 ))
                 .and_then(|header| {
-                    header.to_str().map_err(|_| {
-                        UnexpectedError::new("header cant parse to str".to_string())
-                    })
+                    header
+                        .to_str()
+                        .map_err(|_| UnexpectedError::new("header cant parse to str".to_string()))
                 })
                 .and_then(|header_str| {
                     if header_str.starts_with("Bearer ") {
@@ -60,11 +61,12 @@ impl FromRequest for UserExtractor {
                     }
                 })
                 .and_then(|header_str| {
-                    jsonwebtoken::decode::<JwtClaims>(&header_str, app_state.api_config.auth_jwt_secret.as_ref())
+                    jsonwebtoken::decode::<JwtClaims>(
+                        &header_str,
+                        api_config.auth_jwt_secret.as_ref(),
+                    )
                 })
-                .map(|jwt| UserExtractor {
-                    user_id: jwt.sub,
-                });
+                .map(|jwt| UserExtractor { user_id: jwt.sub });
 
             Box::pin(async { Ok(user?) })
         }

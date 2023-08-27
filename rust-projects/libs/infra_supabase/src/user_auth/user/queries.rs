@@ -8,9 +8,9 @@ use serde::Deserialize;
 use async_trait::async_trait;
 use integrator::user_auth::user_accessor::UserQueries;
 
-use crate::errors::{map_http_status_error, map_reqwest_error};
-
 use super::UserAccessor;
+use crate::errors::map_http_status_error;
+use domain::map_unexpected_error;
 
 #[async_trait]
 impl UserQueries for UserAccessor {
@@ -22,14 +22,14 @@ impl UserQueries for UserAccessor {
             .bearer_auth(&self.config.service_role)
             .send()
             .await
-            .map_err(map_reqwest_error)?;
+            .map_err(|err| map_unexpected_error!(err))?;
 
         let response_status_code = http_res.status().clone();
         if response_status_code.is_success() {
             let res_dto = http_res
                 .json::<UserDTO>()
                 .await
-                .map_err(map_reqwest_error)?;
+                .map_err(|err| map_unexpected_error!(err))?;
 
             let registered_at: Option<DateTime> = res_dto
                 .user_metadata
@@ -41,7 +41,10 @@ impl UserQueries for UserAccessor {
         } else if response_status_code == StatusCode::NOT_FOUND {
             Ok(None)
         } else {
-            let body_str = http_res.text().await.map_err(map_reqwest_error)?;
+            let body_str = http_res
+                .text()
+                .await
+                .map_err(|err| map_unexpected_error!(err))?;
             Err(map_http_status_error(&response_status_code, &body_str))
         }
     }

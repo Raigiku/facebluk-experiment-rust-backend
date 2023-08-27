@@ -4,12 +4,11 @@ use actix_web::{
 };
 use derive_more::{Display, Error};
 use domain::modules::shared::{errors::{FaceblukError, UnexpectedError, UserExposedError}, json_serializer};
-use log::error;
 use serde::Serialize;
 use std::convert::From;
 
 #[derive(Debug, Display, Error, Serialize)]
-#[display(fmt = "status_code: {} | msg: {}", status_code, message)]
+#[display(fmt = "")]
 pub struct FaceblukHttpError {
     #[serde(skip)]
     status_code: StatusCode,
@@ -22,7 +21,6 @@ impl ResponseError for FaceblukHttpError {
     }
 
     fn error_response(&self) -> actix_web::HttpResponse<actix_web::body::BoxBody> {
-        error!("{}", self.message);
         let mut res_builder = HttpResponse::build(self.status_code());
         res_builder.insert_header(ContentType::json());
         if self.status_code == StatusCode::BAD_REQUEST {

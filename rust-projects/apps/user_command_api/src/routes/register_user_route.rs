@@ -1,8 +1,7 @@
 use std::sync::Arc;
 
 use crate::shared::{
-    app_state::AppState, error_handling::FaceblukHttpError, parsers::parse_form_image,
-    user_extractor::UserExtractor,
+    error_handling::FaceblukHttpError, parsers::parse_form_image, user_extractor::UserExtractor,
 };
 use actix_multipart::form::{tempfile::TempFile, text::Text, MultipartForm};
 use actix_web::{post, web, HttpResponse, Responder};
@@ -15,12 +14,15 @@ use domain::modules::{
         json_serializer,
     },
 };
-use integrator::{EventStore, UserAuth};
+use integrator::{EventStore, FileStorage, MsgBroker, UserAuth};
 
 #[post("/users/register/v1")]
 pub async fn handle(
     mut form: MultipartForm<FormData>,
-    deps: web::Data<AppState>,
+    user_auth: web::Data<Arc<dyn UserAuth>>,
+    file_storage: web::Data<Arc<dyn FileStorage>>,
+    msg_broker: web::Data<Arc<dyn MsgBroker>>,
+    event_store: web::Data<Arc<dyn EventStore>>,
     user: UserExtractor,
 ) -> actix_web::Result<impl Responder, FaceblukHttpError> {
     let profile_picture = if let Some(ref mut image) = form.profile_picture {
@@ -34,14 +36,14 @@ pub async fn handle(
         &form.alias,
         &profile_picture,
         &user.user_id,
-        &deps.user_auth,
-        &deps.event_store,
+        &user_auth,
+        &event_store,
     )
     .await?;
 
     let profile_picture_url = if let Some(profile_picture) = profile_picture {
         Some(
-            deps.file_storage
+            file_storage
                 .user_mutations()
                 .upload_image(
                     &user.user_id,
@@ -54,8 +56,9 @@ pub async fn handle(
         None
     };
 
-    let msg_broker_chann = deps.msg_broker.create_channel().await?;
+    let msg_broker_chann = msg_broker.create_channel().await?;
     let serialized_msg = json_serializer::serialize(&msg_broker::user::RegisterUser {
+        user_id: user.user_id,
         name: form.name.to_string(),
         alias: form.alias.to_string(),
         profile_picture_url,

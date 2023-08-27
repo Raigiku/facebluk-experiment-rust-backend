@@ -1,6 +1,6 @@
 use crate::modules::shared::errors::UserExposedError;
 
-use super::aggregate::Aggregate;
+use super::{aggregate::Aggregate, event_data::EventData};
 
 pub struct User {
     aggregate: Aggregate,
@@ -31,34 +31,40 @@ impl User {
         profile_picture_url: &Option<String>,
     ) -> events::Registered {
         events::Registered {
+            data: EventData::new(id.to_string()),
             payload: events::RegisteredPayload {
                 name: name.to_string(),
                 alias: alias.to_string(),
-                profile_picture_url:profile_picture_url.clone(),
+                profile_picture_url: profile_picture_url.clone(),
             },
         }
     }
 
     pub fn update_info(
-        name: Option<String>,
-        profile_picture_url: Option<String>,
+        id: &str,
+        name: &Option<String>,
+        profile_picture_url: &Option<String>,
     ) -> events::InfoUpdated {
         events::InfoUpdated {
+            data: EventData::new(id.to_string()),
             payload: events::InfoUpdatedPayload {
-                name,
-                profile_picture_url,
+                name: name.clone(),
+                profile_picture_url: profile_picture_url.clone(),
             },
         }
     }
 }
 
 pub mod events {
+    use crate::modules::event_store::event_data::EventData;
+
     pub enum Event {
         Registered(Registered),
         InfoUpdated(InfoUpdated),
     }
 
     pub struct Registered {
+        pub data: EventData,
         pub payload: RegisteredPayload,
     }
     pub struct RegisteredPayload {
@@ -68,6 +74,7 @@ pub mod events {
     }
 
     pub struct InfoUpdated {
+        pub data: EventData,
         pub payload: InfoUpdatedPayload,
     }
     pub struct InfoUpdatedPayload {

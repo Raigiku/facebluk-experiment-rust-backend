@@ -5,7 +5,7 @@ pub struct Post {
 }
 
 impl Post {
-    pub fn create(user_id: String, description: String, tagged_user_ids: Vec<String>) -> Self {
+    pub fn new(user_id: String, description: String, tagged_user_ids: Vec<String>) -> Self {
         return Self {
             user_id,
             description,

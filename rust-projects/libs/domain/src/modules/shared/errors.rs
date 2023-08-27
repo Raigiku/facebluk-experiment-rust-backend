@@ -38,3 +38,10 @@ impl UnexpectedError {
         Self { msg }
     }
 }
+
+#[macro_export]
+macro_rules! map_unexpected_error {
+    ($err:expr) => {
+        UnexpectedError::new(format!("file: {} / line: {} / error: {:?}", file!(), line!(), $err))
+    };
+}

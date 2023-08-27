@@ -2,6 +2,7 @@ use std::{env, str::FromStr};
 
 use crate::modules::shared::errors::UnexpectedError;
 
+#[derive(Clone)]
 pub struct SharedConfig {
     pub environment: Environment,
 }
@@ -14,7 +15,7 @@ impl SharedConfig {
     }
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 pub enum Environment {
     Local,
     Staging,
