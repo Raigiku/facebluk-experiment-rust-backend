@@ -1,11 +1,11 @@
-use std::{future::Future, pin::Pin, sync::Arc};
-
 use actix_web::{web, FromRequest, HttpRequest};
+use domain::map_unexpected_error;
 use domain::{
     config::{Environment, SharedConfig},
     modules::shared::{errors::UnexpectedError, jsonwebtoken, uuid},
 };
 use serde::Deserialize;
+use std::{future::Future, pin::Pin, sync::Arc};
 
 use super::{config::Config, error_handling::FaceblukHttpError};
 
@@ -24,13 +24,13 @@ impl FromRequest for UserExtractor {
             let user = req
                 .headers()
                 .get("authorization")
-                .ok_or(UnexpectedError::new(
-                    "authorization header not found".to_string(),
+                .ok_or(map_unexpected_error!(
+                    "authorization header not found".to_string()
                 ))
                 .and_then(|header| {
                     header
                         .to_str()
-                        .map_err(|_| UnexpectedError::new("header cant parse to str".to_string()))
+                        .map_err(|_| map_unexpected_error!("header cant parse to str".to_string()))
                 })
                 .and_then(|header_str| uuid::parse_str(header_str))
                 .map(|user_id| UserExtractor {
@@ -43,20 +43,20 @@ impl FromRequest for UserExtractor {
             let user = req
                 .headers()
                 .get("authorization")
-                .ok_or(UnexpectedError::new(
-                    "authorization header not found".to_string(),
+                .ok_or(map_unexpected_error!(
+                    "authorization header not found".to_string()
                 ))
                 .and_then(|header| {
                     header
                         .to_str()
-                        .map_err(|_| UnexpectedError::new("header cant parse to str".to_string()))
+                        .map_err(|_| map_unexpected_error!("header cant parse to str".to_string()))
                 })
                 .and_then(|header_str| {
                     if header_str.starts_with("Bearer ") {
                         Ok(header_str.replace("Bearer ", ""))
                     } else {
-                        Err(UnexpectedError::new(
-                            "bearer token has wrong format".to_string(),
+                        Err(map_unexpected_error!(
+                            "bearer token has wrong format".to_string()
                         ))
                     }
                 })

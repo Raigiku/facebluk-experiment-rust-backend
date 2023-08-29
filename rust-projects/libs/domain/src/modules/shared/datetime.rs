@@ -1,5 +1,7 @@
 use chrono::Utc;
 
+use crate::map_unexpected_error;
+
 use super::errors::UnexpectedError;
 
 pub struct DateTime(chrono::DateTime<Utc>);
@@ -19,7 +21,7 @@ impl TryFrom<String> for DateTime {
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         let result = chrono::DateTime::parse_from_rfc3339(&value)
-            .map_err(|err| UnexpectedError::new(err.to_string()))?;
+            .map_err(|err| map_unexpected_error!(err))?;
         Ok(DateTime(result.with_timezone(&Utc)))
     }
 }

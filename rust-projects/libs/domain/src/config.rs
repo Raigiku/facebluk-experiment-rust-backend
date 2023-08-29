@@ -1,6 +1,6 @@
 use std::{env, str::FromStr};
 
-use crate::modules::shared::errors::UnexpectedError;
+use crate::{map_unexpected_error, modules::shared::errors::UnexpectedError};
 
 #[derive(Clone)]
 pub struct SharedConfig {
@@ -33,8 +33,8 @@ impl FromStr for Environment {
         } else if s.eq_ignore_ascii_case("production") {
             Ok(Self::Production)
         } else {
-            Err(UnexpectedError::new(
-                "unknown environment env var".to_string(),
+            Err(map_unexpected_error!(
+                "unknown environment env var".to_string()
             ))
         }
     }

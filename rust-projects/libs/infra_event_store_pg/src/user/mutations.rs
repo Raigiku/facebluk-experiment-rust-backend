@@ -1,8 +1,6 @@
 use async_trait::async_trait;
-use domain::modules::{event_store::user::events::Registered, shared::errors::UnexpectedError};
+use domain::{modules::{event_store::user::events::Registered, shared::errors::UnexpectedError}, map_unexpected_error};
 use integrator::event_store::user_accessor::UserMutations;
-
-use crate::errors::map_sqlx_error;
 
 use super::UserAccessor;
 
@@ -30,7 +28,7 @@ impl UserMutations for UserAccessor {
         .bind(&event.payload.profile_picture_url)
         .execute(self.pool.as_ref())
         .await
-        .map_err(|err| map_sqlx_error(err, file!(), line!()))?;
+        .map_err(|err| map_unexpected_error!(err))?;
 
         Ok(())
     }

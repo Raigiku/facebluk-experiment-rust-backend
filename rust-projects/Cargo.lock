@@ -3224,7 +3224,6 @@ dependencies = [
  "mockall",
  "mockall_double",
  "serde",
- "tracing",
  "tracing-actix-web",
  "tracing-subscriber",
 ]

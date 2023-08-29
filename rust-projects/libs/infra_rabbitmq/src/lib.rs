@@ -1,5 +1,4 @@
 pub mod config;
-mod errors;
 
 use std::sync::Arc;
 

@@ -96,7 +96,7 @@ pub fn validate_name(name: &str) -> Result<(), UserExposedError> {
     }
 }
 
-const ALIAS_MAX_LENGTH: usize = 100;
+const ALIAS_MAX_LENGTH: usize = 10;
 pub fn validate_alias(alias: &str) -> Result<(), UserExposedError> {
     if alias.len() > ALIAS_MAX_LENGTH {
         Err(UserExposedError::new(format!(
@@ -104,6 +104,10 @@ pub fn validate_alias(alias: &str) -> Result<(), UserExposedError> {
         )))
     } else if alias.is_empty() {
         Err(UserExposedError::new(format!("alias cannot be empty")))
+    } else if !alias.chars().all(|x| x.is_alphanumeric()) {
+        Err(UserExposedError::new(format!(
+            "alias needs to be alphanumeric"
+        )))
     } else {
         Ok(())
     }

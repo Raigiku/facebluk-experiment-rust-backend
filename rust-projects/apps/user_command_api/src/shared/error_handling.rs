@@ -1,9 +1,6 @@
-use actix_web::{
-    http::{header::ContentType, StatusCode},
-    HttpResponse, ResponseError,
-};
+use actix_web::{http::StatusCode, HttpResponse, ResponseError};
 use derive_more::{Display, Error};
-use domain::modules::shared::{errors::{FaceblukError, UnexpectedError, UserExposedError}, json_serializer};
+use domain::modules::shared::errors::{FaceblukError, UnexpectedError, UserExposedError};
 use serde::Serialize;
 use std::convert::From;
 
@@ -21,12 +18,11 @@ impl ResponseError for FaceblukHttpError {
     }
 
     fn error_response(&self) -> actix_web::HttpResponse<actix_web::body::BoxBody> {
-        let mut res_builder = HttpResponse::build(self.status_code());
-        res_builder.insert_header(ContentType::json());
         if self.status_code == StatusCode::BAD_REQUEST {
-            res_builder.body(json_serializer::serialize(self).unwrap());
+            HttpResponse::build(self.status_code()).json(self)
+        } else {
+            HttpResponse::build(self.status_code()).finish()
         }
-        res_builder.finish()
     }
 }
 
