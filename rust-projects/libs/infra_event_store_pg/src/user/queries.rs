@@ -8,15 +8,15 @@ use std::collections::HashMap;
 
 use domain::map_unexpected_error;
 
-use super::UserAccessor;
+use crate::EventStoreImpl;
 
 #[async_trait]
-impl UserQueries for UserAccessor {
-    async fn alias_exists(&self, alias: &str) -> Result<bool, UnexpectedError> {
+impl UserQueries for EventStoreImpl {
+    async fn user_q_alias_exists(&self, alias: &str) -> Result<bool, UnexpectedError> {
         Ok(sqlx::query(
             "
             SELECT 1
-            FROM user u
+            FROM \"user\" u
             WHERE u.alias = $1
             ",
         )
@@ -27,7 +27,7 @@ impl UserQueries for UserAccessor {
         .is_some())
     }
 
-    async fn find_by_id(&self, id: &str) -> Result<Option<User>, UnexpectedError> {
+    async fn user_q_find_by_id(&self, id: &str) -> Result<Option<User>, UnexpectedError> {
         let sql_str = format!("{} {}", QUERY_SQL, "WHERE u.id = $1");
         let rows = sqlx::query_as::<_, QueryRow>(&sql_str)
             .bind(id)
@@ -51,7 +51,7 @@ const QUERY_SQL: &str = "
         ,u.\"name\" as u_name,
         ,u.alias as u_alias,
         ,u.profile_picture_url as u_profile_picture_url
-    FROM user u
+    FROM \"user\" u
 ";
 
 #[derive(sqlx::FromRow)]

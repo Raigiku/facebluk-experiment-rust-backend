@@ -3,12 +3,12 @@ use domain::modules::{shared::{errors::UnexpectedError, datetime::DateTime}, use
 
 #[async_trait]
 pub trait UserQueries: Sync + Send {
-    async fn find_by_id(&self, id: &str) -> Result<Option<User>, UnexpectedError>;
+    async fn user_q_find_by_id(&self, id: &str) -> Result<Option<User>, UnexpectedError>;
 }
 
 #[async_trait]
 pub trait UserMutations: Sync + Send {
-    async fn mark_as_registered(
+    async fn user_m_mark_as_registered(
         &self,
         id: &str,
         registered_at: &DateTime,

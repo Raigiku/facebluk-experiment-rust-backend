@@ -1,30 +1,18 @@
-mod user;
+mod mutations;
+mod queries;
 
 use std::sync::Arc;
 
-use integrator::file_storage::user_accessor::{UserMutations, UserQueries};
-pub use user::UserAccessor;
+use crate::Config;
 
 pub struct FileStorageImpl {
-    user_queries: Arc<dyn UserQueries>,
-    user_mutations: Arc<dyn UserMutations>,
+    config: Arc<Config>,
 }
 
 impl FileStorageImpl {
-    pub fn new(user_queries: Arc<dyn UserQueries>, user_mutations: Arc<dyn UserMutations>) -> Self {
-        Self {
-            user_queries,
-            user_mutations,
-        }
+    pub fn new(config: Arc<Config>) -> Self {
+        Self { config }
     }
 }
 
-impl integrator::FileStorage for FileStorageImpl {
-    fn user_queries(&self) -> &Arc<dyn UserQueries> {
-        &self.user_queries
-    }
-
-    fn user_mutations(&self) -> &Arc<dyn UserMutations> {
-        &self.user_mutations
-    }
-}
+impl integrator::FileStorage for FileStorageImpl {}

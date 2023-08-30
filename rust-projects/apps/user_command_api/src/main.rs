@@ -15,7 +15,7 @@ use crate::shared::error_handling::FaceblukHttpError;
 
 #[get("/health-check")]
 async fn health_check() -> actix_web::Result<impl Responder, FaceblukHttpError> {
-    Ok(HttpResponse::Ok().body("Hello world!"))
+    Ok(HttpResponse::Ok().finish())
 }
 
 #[actix_web::main]
@@ -58,21 +58,11 @@ async fn main() -> std::io::Result<()> {
 }
 
 fn setup_file_storage(config: Arc<infra_supabase::Config>) -> Arc<dyn FileStorage> {
-    let user_accessor = Arc::new(infra_supabase::file_storage::UserAccessor::new(config));
-    let file_storage = Arc::new(infra_supabase::file_storage::FileStorageImpl::new(
-        user_accessor.clone(),
-        user_accessor.clone(),
-    ));
-    file_storage
+    Arc::new(infra_supabase::file_storage::FileStorageImpl::new(config))
 }
 
 fn setup_user_auth(config: Arc<infra_supabase::Config>) -> Arc<dyn UserAuth> {
-    let user_accessor = Arc::new(infra_supabase::user_auth::UserAccessor::new(config));
-    let user_auth = Arc::new(infra_supabase::user_auth::UserAuthImpl::new(
-        user_accessor.clone(),
-        user_accessor.clone(),
-    ));
-    user_auth
+    Arc::new(infra_supabase::user_auth::UserAuthImpl::new(config))
 }
 
 async fn setup_event_store() -> Arc<dyn EventStore> {
@@ -81,12 +71,7 @@ async fn setup_event_store() -> Arc<dyn EventStore> {
             .await
             .unwrap(),
     );
-    let user_accessor = Arc::new(infra_event_store_pg::UserAccessor::new(pool));
-    let event_store = Arc::new(infra_event_store_pg::EventStoreImpl::new(
-        user_accessor.clone(),
-        user_accessor.clone(),
-    ));
-    event_store
+    Arc::new(infra_event_store_pg::EventStoreImpl::new(pool))
 }
 
 async fn setup_msg_broker() -> Arc<dyn MsgBroker> {

@@ -1,10 +1,5 @@
-use std::sync::Arc;
+use self::file_accessor::{FileMutations, FileQueries};
 
-use self::user_accessor::{UserMutations, UserQueries};
+pub mod file_accessor;
 
-pub mod user_accessor;
-
-pub trait FileStorage: Sync + Send {
-    fn user_queries(&self) -> &Arc<dyn UserQueries>;
-    fn user_mutations(&self) -> &Arc<dyn UserMutations>;
-}
+pub trait FileStorage: Sync + Send + FileQueries + FileMutations {}

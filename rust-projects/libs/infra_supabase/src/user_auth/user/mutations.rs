@@ -3,13 +3,12 @@ use domain::modules::shared::{datetime::DateTime, errors::UnexpectedError};
 use integrator::user_auth::user_accessor::UserMutations;
 use serde::Serialize;
 
-use super::UserAccessor;
-use crate::errors::map_http_status_error;
+use crate::{errors::map_http_status_error, user_auth::UserAuthImpl};
 use domain::map_unexpected_error;
 
 #[async_trait]
-impl UserMutations for UserAccessor {
-    async fn mark_as_registered(
+impl UserMutations for UserAuthImpl {
+    async fn user_m_mark_as_registered(
         &self,
         id: &str,
         registered_at: &DateTime,

@@ -8,13 +8,12 @@ use serde::Deserialize;
 use async_trait::async_trait;
 use integrator::user_auth::user_accessor::UserQueries;
 
-use super::UserAccessor;
-use crate::errors::map_http_status_error;
+use crate::{errors::map_http_status_error, user_auth::UserAuthImpl};
 use domain::map_unexpected_error;
 
 #[async_trait]
-impl UserQueries for UserAccessor {
-    async fn find_by_id(&self, id: &str) -> Result<Option<User>, UnexpectedError> {
+impl UserQueries for UserAuthImpl {
+    async fn user_q_find_by_id(&self, id: &str) -> Result<Option<User>, UnexpectedError> {
         let url = format!("{}/auth/v1/admin/users/{}", self.config.api_url, id);
         let http_res = reqwest::Client::new()
             .get(url)

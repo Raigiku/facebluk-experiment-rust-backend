@@ -6,11 +6,11 @@ use domain::modules::{
 
 #[async_trait]
 pub trait UserQueries: Sync + Send {
-    async fn alias_exists(&self, alias: &str) -> Result<bool, UnexpectedError>;
-    async fn find_by_id(&self, id: &str) -> Result<Option<User>, UnexpectedError>;
+    async fn user_q_alias_exists(&self, alias: &str) -> Result<bool, UnexpectedError>;
+    async fn user_q_find_by_id(&self, id: &str) -> Result<Option<User>, UnexpectedError>;
 }
 
 #[async_trait]
 pub trait UserMutations: Sync + Send {
-    async fn register(&self, event: &Registered) -> Result<(), UnexpectedError>;
+    async fn user_m_register(&self, event: &Registered) -> Result<(), UnexpectedError>;
 }

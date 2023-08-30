@@ -1,12 +1,15 @@
 use async_trait::async_trait;
-use domain::{modules::{event_store::user::events::Registered, shared::errors::UnexpectedError}, map_unexpected_error};
+use domain::{
+    map_unexpected_error,
+    modules::{event_store::user::events::Registered, shared::errors::UnexpectedError},
+};
 use integrator::event_store::user_accessor::UserMutations;
 
-use super::UserAccessor;
+use crate::EventStoreImpl;
 
 #[async_trait]
-impl UserMutations for UserAccessor {
-    async fn register(&self, event: &Registered) -> Result<(), UnexpectedError> {
+impl UserMutations for EventStoreImpl {
+    async fn user_m_register(&self, event: &Registered) -> Result<(), UnexpectedError> {
         sqlx::query(
             "
                 INSERT INTO user (

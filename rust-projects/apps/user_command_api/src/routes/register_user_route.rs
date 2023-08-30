@@ -42,14 +42,14 @@ pub async fn handle(
     .await?;
 
     let profile_picture_url = if let Some(profile_picture) = profile_picture {
+        let file_path = format!(
+            "images/users/{user_id}/{file_name}",
+            user_id = user.user_id,
+            file_name = profile_picture.file_name()
+        );
         Some(
             file_storage
-                .user_mutations()
-                .upload_image(
-                    &user.user_id,
-                    &profile_picture.file_name(),
-                    profile_picture.bytes,
-                )
+                .m_upload_file(&file_path, profile_picture.bytes)
                 .await?,
         )
     } else {
@@ -93,12 +93,12 @@ async fn validate_request(
         shared::image::validate(profile_picture)?;
     }
 
-    let alias_exists = event_store.user_queries().alias_exists(alias).await?;
+    let alias_exists = event_store.user_q_alias_exists(alias).await?;
     if alias_exists {
         return Err(UserExposedError::new("user alias already exists".to_string()).into());
     }
 
-    let user = user_auth.user_queries().find_by_id(user_id).await?;
+    let user = user_auth.user_q_find_by_id(user_id).await?;
     if user.is_none() {
         return Err(UserExposedError::new("user id does not exist".to_string()).into());
     }
