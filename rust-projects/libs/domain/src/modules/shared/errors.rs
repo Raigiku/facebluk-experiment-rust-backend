@@ -1,7 +1,7 @@
 use derive_more::{Display, Error};
 
 pub enum FaceblukError {
-    UserExposed(UserExposedError),
+    UserExposed(ValidationError),
     Unexpected(UnexpectedError),
 }
 
@@ -11,18 +11,18 @@ impl From<UnexpectedError> for FaceblukError {
     }
 }
 
-impl From<UserExposedError> for FaceblukError {
-    fn from(value: UserExposedError) -> Self {
+impl From<ValidationError> for FaceblukError {
+    fn from(value: ValidationError) -> Self {
         FaceblukError::UserExposed(value)
     }
 }
 
 #[derive(Error, Display, Debug)]
-pub struct UserExposedError {
+pub struct ValidationError {
     pub msg: String,
 }
 
-impl UserExposedError {
+impl ValidationError {
     pub fn new(msg: String) -> Self {
         Self { msg }
     }

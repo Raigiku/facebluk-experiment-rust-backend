@@ -1,6 +1,6 @@
 use actix_web::{http::StatusCode, HttpResponse, ResponseError};
 use derive_more::{Display, Error};
-use domain::modules::shared::errors::{FaceblukError, UnexpectedError, UserExposedError};
+use domain::modules::shared::errors::{FaceblukError, UnexpectedError, ValidationError};
 use serde::Serialize;
 use std::convert::From;
 
@@ -41,8 +41,8 @@ impl From<FaceblukError> for FaceblukHttpError {
     }
 }
 
-impl From<UserExposedError> for FaceblukHttpError {
-    fn from(value: UserExposedError) -> Self {
+impl From<ValidationError> for FaceblukHttpError {
+    fn from(value: ValidationError) -> Self {
         Self {
             status_code: StatusCode::BAD_REQUEST,
             message: value.msg,

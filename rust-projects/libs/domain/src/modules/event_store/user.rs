@@ -1,4 +1,4 @@
-use crate::modules::shared::errors::UserExposedError;
+use crate::modules::shared::errors::ValidationError;
 
 use super::{aggregate::Aggregate, event_data::EventData};
 
@@ -84,28 +84,28 @@ pub mod events {
 }
 
 const NAME_MAX_LENGTH: usize = 100;
-pub fn validate_name(name: &str) -> Result<(), UserExposedError> {
+pub fn validate_name(name: &str) -> Result<(), ValidationError> {
     if name.len() > NAME_MAX_LENGTH {
-        Err(UserExposedError::new(format!(
+        Err(ValidationError::new(format!(
             "name max length {NAME_MAX_LENGTH}"
         )))
     } else if name.is_empty() {
-        Err(UserExposedError::new(format!("name cannot be empty")))
+        Err(ValidationError::new(format!("name cannot be empty")))
     } else {
         Ok(())
     }
 }
 
 const ALIAS_MAX_LENGTH: usize = 10;
-pub fn validate_alias(alias: &str) -> Result<(), UserExposedError> {
+pub fn validate_alias(alias: &str) -> Result<(), ValidationError> {
     if alias.len() > ALIAS_MAX_LENGTH {
-        Err(UserExposedError::new(format!(
+        Err(ValidationError::new(format!(
             "alias max length {ALIAS_MAX_LENGTH}"
         )))
     } else if alias.is_empty() {
-        Err(UserExposedError::new(format!("alias cannot be empty")))
+        Err(ValidationError::new(format!("alias cannot be empty")))
     } else if !alias.chars().all(|x| x.is_alphanumeric()) {
-        Err(UserExposedError::new(format!(
+        Err(ValidationError::new(format!(
             "alias needs to be alphanumeric"
         )))
     } else {

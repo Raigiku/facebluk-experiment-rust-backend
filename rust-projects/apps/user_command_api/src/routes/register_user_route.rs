@@ -9,7 +9,7 @@ use domain::modules::{
     event_store, msg_broker,
     shared::{
         self,
-        errors::{FaceblukError, UserExposedError},
+        errors::{FaceblukError, ValidationError},
         image::Image,
         json_serializer,
     },
@@ -95,12 +95,12 @@ async fn validate_request(
 
     let alias_exists = event_store.user_q_alias_exists(alias).await?;
     if alias_exists {
-        return Err(UserExposedError::new("user alias already exists".to_string()).into());
+        return Err(ValidationError::new("user alias already exists".to_string()).into());
     }
 
     let user = user_auth.user_q_find_by_id(user_id).await?;
     if user.is_none() {
-        return Err(UserExposedError::new("user id does not exist".to_string()).into());
+        return Err(ValidationError::new("user id does not exist".to_string()).into());
     }
 
     Ok(())

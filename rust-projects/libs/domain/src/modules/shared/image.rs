@@ -1,6 +1,6 @@
 use uuid::Uuid;
 
-use super::errors::UserExposedError;
+use super::errors::ValidationError;
 
 pub struct Image {
     id: String,
@@ -23,16 +23,16 @@ impl Image {
     }
 }
 
-pub fn validate(image: &Image) -> Result<(), UserExposedError> {
+pub fn validate(image: &Image) -> Result<(), ValidationError> {
     validate_size(&image.bytes)?;
     validate_extension(&image.file_type)?;
     Ok(())
 }
 
 const TEN_MEGABYTES_IN_BYTES: usize = 10 * 1024 * 1024;
-fn validate_size(bytes: &[u8]) -> Result<(), UserExposedError> {
+fn validate_size(bytes: &[u8]) -> Result<(), ValidationError> {
     if bytes.len() > TEN_MEGABYTES_IN_BYTES {
-        Err(UserExposedError::new(
+        Err(ValidationError::new(
             "image must be less than or equal to 10 MB".to_string(),
         ))
     } else {
@@ -41,9 +41,9 @@ fn validate_size(bytes: &[u8]) -> Result<(), UserExposedError> {
 }
 
 const ALLOWED_EXTENSIONS: [&'static str; 3] = ["image/png", "image/jpg", "image/jpeg"];
-fn validate_extension(file_type: &str) -> Result<(), UserExposedError> {
+fn validate_extension(file_type: &str) -> Result<(), ValidationError> {
     if !ALLOWED_EXTENSIONS.contains(&file_type) {
-        Err(UserExposedError::new(format!(
+        Err(ValidationError::new(format!(
             "allowed file types are {}",
             ALLOWED_EXTENSIONS.join(",")
         )))
